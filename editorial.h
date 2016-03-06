@@ -13,6 +13,7 @@ public:
 	Editorial(const Editorial&);
 	Editorial();
 	string toString()const;
+	string toString2()const;
 	unsigned int getID()const;
 	string getNombre()const;
 	string getDireccion()const;

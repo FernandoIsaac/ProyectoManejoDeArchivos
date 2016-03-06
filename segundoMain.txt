@@ -1,0 +1,326 @@
+#include <iostream>
+#include <iomanip>
+#include <string>
+#include <fstream>
+#include <cstring>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <stdio.h>
+#include <stdlib.h>
+#include "libro.h"
+#include "editorial.h"
+
+using namespace std;
+
+//struct Indice {
+//   Editorial editorial; 
+  // long indice;
+//};
+struct Header{
+	int AvailList;
+	int sizeRegistro;
+};
+
+struct Indice{
+	int editorial;
+	long indice;
+};
+
+
+void Crear(Libro &libro);
+void CrearEditorial(Editorial &editorial);
+void Insertar(FILE *fa, Libro &libro);
+void InsertarEditorial(FILE *fed, Editorial &editorial);
+void QuickSort(FILE *fi, long inicio, long final);
+char *LeeCampo(FILE *fi, long n, char *buf);
+void ReconstruirIndices(FILE *fa);
+void Intercambia(FILE *fi, long iz, long de);
+void List(FILE *fa);
+
+int main(int argc, char** argv){
+	//Libro* libro;
+	Libro libro;	
+	//Libro* libro2 = new Libro();
+	Editorial editorial;
+	//Editorial* editorial;
+	FILE *fa;
+	FILE *fed;
+	int opcion, menu;
+	int contLibros = 0;
+	//string NombreLibro, ISBN, autor, NombreEditorial, direccion;
+	//unsigned int IDEditorialLibro, IDEditorial; 
+	//ofstream SalidaLibros("libros.bin",ios::out | ios::binary);
+	fa = fopen("libros.dat", "r+b");          // Este modo permite leer y escribir
+        if(!fa) fa = fopen("libros.dat", "w+b");  // si el fichero no existe, lo crea.
+	fed = fopen("editoriales.dat", "r+b");          // Este modo permite leer y escribir
+        if(!fed) fed = fopen("editoriales.dat", "w+b");  // si el fichero no existe, lo crea.
+	do{
+		cout<<"Ingrese su opcion: "<<endl
+		<<"1) Create Book"<<endl<<"2) Read Book"<<endl
+		<<"3) Update Book"<<endl<<"4) Delete Book"<<endl
+		<<"5) List Books"<<endl<<"6) Create Editorial"<<endl<<"7) Exit"<<endl;
+		cin>>menu;
+		cin.ignore(256,'\n' );
+		if(menu>7||menu<1){
+			cout<<"Opcion no valida"<<endl;
+			cin.ignore(256,'\n' );
+		}
+		if(menu==1){
+			
+			//do{
+				
+				Crear(libro);
+				Insertar(fa, libro);
+               			//cout<<"Ingrese el nombre del libro"<<endl;
+              			//getline (cin,NombreLibro);
+              			//cout<<"Ingrese el ISBN del libro"<<endl;
+              			//getline (cin, ISBN);
+              			//cout<<"Ingrese el nombre del autor del libro"<<endl;
+              			//getline (cin, autor);
+              			//cout<<"Ingrese el ID del editorial del Libro"<<endl;
+              			//cin>>IDEditorialLibro;
+              			//libro = new Libro(ISBN, NombreLibro, autor, IDEditorialLibro);
+       				//libro = new Libro("12356123", "Pokoyo", "Juancho", 25);
+       				//editorial = new Editorial(20, "Editorial1", "Casablanca");
+               			//cout<<libro->getNombre()<<endl;
+               			//cout<<libro->getID()<<endl;
+               			//cout<<libro->getAutor()<<endl;
+               			//cout<<libro->getIDeditorial()<<endl;
+               			//SalidaLibros.write(reinterpret_cast<char *>(&libro),
+               			//sizeof(Libro));
+				//contLibros++;
+               			//cout<<"Desea Continuar Agregando Libros?"<<endl;
+               			//cin>>opcion;
+               			//cin.ignore(256, '\n');
+               			//if(opcion == 0){
+                       		//	break;
+               			//}
+       			//}while(opcion!=0);
+       			//SalidaLibros.close();
+		}
+		if(menu==5){
+
+			List(fa);
+	/*		cout<<"Listado de Registros"<<endl<<endl;
+        		ifstream fentrada("libros.bin",
+        		ios::in | ios::binary);
+			for(int i = 0; i < contLibros; i++){
+       		 		fentrada.read(reinterpret_cast<char *>(&libro2),
+        			sizeof(Libro));
+				cout<<libro2->getNombre()<<endl;
+				cout<<libro2->getID()<<endl;
+				cout<<libro2->getAutor()<<endl;
+				cout<<libro2->getIDeditorial()<<endl;
+			}
+			fentrada.close();
+			
+		//cout<<editorial->getID()<<endl;*/
+		}
+
+		if(menu==6){
+			do{
+				CrearEditorial(editorial);
+				InsertarEditorial(fed, editorial);
+
+               			cout<<"Desea Continuar Agregando Editoriales?"<<endl;
+               			cin>>opcion;
+               			cin.ignore(256, '\n');
+			}while(opcion!=0);
+		}
+	}while(menu!=7);
+//	cin.ignore(256,'\n' );
+
+	return 0;
+}
+
+
+
+
+void Crear(Libro &libro){
+   
+        string NombreLibro, ISBN, autor;
+        unsigned int IDEditorialLibro;
+  	string StringIDEditorialLibro[5];
+	cout<<"Ingrese el nombre del libro"<<endl;
+        //getline (cin,NombreLibro);
+	libro.setNombre(NombreLibro);
+	fgets((char*)(libro.getNombre()).c_str(), 40, stdin);
+        cout<<"Ingrese el ISBN del libro"<<endl;
+	//getline (cin,  ISBN);
+	libro.setID(ISBN);
+        fgets((char*)(libro.getID()).c_str(), 14, stdin);
+        cout<<"Ingrese el nombre del autor del libro"<<endl;
+        //getline (cin, autor);
+	libro.setAutor(autor);
+	fgets((char*)(libro.getAutor()).c_str(), 40, stdin);
+        cout<<"Ingrese el ID del editorial del Libro"<<endl;
+        //cin>>IDEditorialLibro;
+	libro.setIDeditorial(IDEditorialLibro);
+	//atoi(IDEditorialLibro, stringIDEditorialLibro, 10);
+	fgets((char*)(libro.IDeditorialtoString()).c_str(),5, stdin);
+
+   /*system("cls");
+   strcpy(buf, (ind.editorial.toString2()).c_str());
+   printf("Leer registro:\n\n");
+   reg.valido = 'S';
+   printf("Nombre: ");
+   fgets(reg.nombre, 34, stdin);
+   EliminarRetornoLinea(reg.nombre);
+   printf("Primer apellido: ");
+   fgets(reg.apellido[0], 34, stdin);
+   EliminarRetornoLinea(reg.apellido[0]);
+   printf("Segundo apellido: ");
+   fgets(reg.apellido[1], 34, stdin);
+   EliminarRetornoLinea(reg.apellido[1]);
+   printf("Teléfono: ");
+   fgets(reg.telefono, 10, stdin);
+   EliminarRetornoLinea(reg.telefono);*/
+}
+
+void CrearEditorial(Editorial &editorial){
+   
+        string NombreEditorial, Direccion;
+        unsigned int IDEditorial;
+
+	cout<<"Ingrese el nombre del Editorial"<<endl;
+        getline (cin, NombreEditorial);
+        cout<<"Ingrese la direccion del Editorial"<<endl;
+        getline (cin, Direccion);
+        cout<<"Ingrese el ID del Editorial"<<endl;
+        cin>>IDEditorial;
+}
+
+void Insertar(FILE *fa, Libro &libro){
+   // Insertar al final:
+	fseek(fa, 0, SEEK_END);
+	fwrite(&libro, sizeof(Libro), 1, fa);
+   	ReconstruirIndices(fa);
+}
+
+void InsertarEditorial(FILE *fed, Editorial &editorial){
+	fseek(fed, 0, SEEK_END);
+	fwrite(&editorial, sizeof(Editorial), 1, fed);
+}
+
+void ReconstruirIndices(FILE *fa){
+	long n=0;
+	FILE *fi;
+	Libro libro;
+	Indice ind;
+   
+   // Crea el fichero de índices a partir del archivo de datos:
+   	fi = fopen("libros.bin", "w+b");
+
+   	rewind(fa);
+   	while(fread(&libro, sizeof(Libro), 1, fa)) {
+      		//strcpy((char*)(ind.editorial.toString2()).c_str(), (libro.IDeditorialtoString()).c_str());
+      		ind.editorial.setID(libro.getIDeditorial());
+		ind.indice = n++;
+      		fwrite(&ind, sizeof(Indice), 1, fi);
+   	}	
+   // Ordena usando el algoritmo Quicksort:
+   	QuickSort(fi, 0, n-1);
+   	fclose(fi);
+}
+
+
+void QuickSort(FILE *fi, long inicio, long final){
+	long iz, de;
+  	char mitad[10];
+   	static char cad[10];
+
+   	iz = inicio;
+   	de = final;
+   	strcpy(mitad, LeeCampo(fi, (iz+de)/2, cad));
+   	do {
+      		while(strcmp(LeeCampo(fi, iz, cad), mitad) < 0 && iz < final) iz++;
+      		while(strcmp(mitad, LeeCampo(fi, de, cad)) < 0 && de > inicio) de--;
+      		if(iz < de) Intercambia(fi, iz, de);
+      			if(iz <= de) {
+       				iz++;
+        			de--;
+      			}
+   	} while(iz <= de);
+   	if(inicio < de) QuickSort(fi, inicio, de);
+   	if(iz < final) QuickSort(fi, iz, final);
+}
+
+
+
+
+char *LeeCampo(FILE *fi, long n, char* buf){
+	Indice ind;
+
+   	fseek(fi, n*sizeof(Indice), SEEK_SET);
+   	fread(&ind, sizeof(Indice), 1, fi);
+   	strcpy(buf, (ind.editorial.toString2()).c_str());
+   	return buf;
+}
+
+
+
+void Intercambia(FILE *fi, long iz, long de){
+	Indice registro1, registro2;
+
+	fseek(fi, iz*sizeof(Indice), SEEK_SET);
+	fread(&registro1, sizeof(Indice), 1, fi);
+	fseek(fi, de*sizeof(Indice), SEEK_SET);
+	fread(&registro2, sizeof(Indice), 1, fi);
+	fseek(fi, iz*sizeof(Indice), SEEK_SET);
+	fwrite(&registro2, sizeof(Indice), 1, fi);
+	fseek(fi, de*sizeof(Indice), SEEK_SET);
+	fwrite(&registro1, sizeof(Indice), 1, fi);
+}
+
+void List(FILE *fa){
+	Libro libro;
+   
+	rewind(fa);
+	system("cls");
+	while(fread(&libro, sizeof(Libro), 1, fa))
+      		printf(" %s %s %s %s\n", (char*)(libro.getNombre()).c_str(), (char*)(libro.getID()).c_str(), (char*)(libro.getAutor()).c_str(), (char*)(libro.IDeditorialtoString()).c_str());
+		//cout<<libro.getNombre()<<endl;
+		//cout<<libro.getID()<<endl;
+		//cout<<libro.getAutor()<<endl;
+		//cout<<libro.getIDeditorial()<<endl;
+		//libro.toString();
+	 
+      //printf("%s %s %s %s\n", (char*)libro.getNombre(), (char*)libro.getID(),
+        // (char*)libro.getAutor(), (char*)libro.getIDeditorial());
+	system("PAUSE");
+}
+
+/*
+
+void Leer(FILE *fa, stRegistro &libro, char *editorial){
+	FILE *fi;
+	Indice ind;
+	long inf, sup, n, nRegs;
+	
+	fi = fopen("libros.bin", "rb");
+	fseek(fi, 0, SEEK_END);
+   	nRegs = ftell(fi)/sizeof(Indice);
+   	// Búsqueda binaria:
+   	inf = 0;
+   	sup = nRegs-1;
+   	do{
+      		n = inf+(sup-inf)/2;
+      		fseek(fi, n*sizeof(Indice), SEEK_SET);
+      		fread(&ind, sizeof(Indice), 1, fi);
+      		if(strcmp(ind.editorial.toString2(), telefono.toString2() < 0) inf = n+1;
+      		else sup = n-1;
+   	}while(inf <= sup && strcmp(ind.telefono.toString2(), telefono.toString2()));
+   	// Si se encontró el teléfono, lee el registro, si no muestra mensaje.
+   	if(!strcmp(ind.telefono.toString2(), telefono.toString2())) {
+      		fseek(fa, ind.indice*sizeof(Libro), SEEK_SET);
+      		fread(&libro, sizeof(Libro), 1, fa);
+   	}
+   	else {
+      		//libro.valido = 'N';
+      		printf("Registro no encontrado\n");
+   	}
+   	fclose(fi);
+}
+
+*/

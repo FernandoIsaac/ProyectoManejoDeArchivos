@@ -32,6 +32,13 @@ string Editorial::toString()const{
         return ss.str();
 }
 
+string Editorial::toString2()const{
+	stringstream ss;
+	ss<<ID;
+	return ss.str();
+
+}
+
 unsigned int Editorial::getID()const{
         return ID;
 }
