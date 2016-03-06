@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include "libro.h"
@@ -14,53 +13,13 @@
 
 using namespace std;
 
-template <class T>
-class Stack{
-public:
-  	Stack() {}
-  	void push(T x);
-  	void pop();
-  	T & top();
-  	size_t size();
-  	bool empty();
-	std::vector<T> elems;
-};
-
-template <class T>
-void Stack<T>::push(T x){
-	elems.push_back(x);
-}
-
-template <class T>
-void Stack<T>::pop(){
-	if (elems.size() > 0){
-      		elems.erase(elems.end() - 1);
-    	};
-}
-
-template <class T>
-T & Stack<T>::top(){
-	assert(elems.size() > 0);
-	return elems.at(elems.size()-1);
-}
-
-template <class T>
-size_t Stack<T>::size(){
-	return elems.size();
-}
-
-template <class T>
-bool Stack<T>::empty(){
-	return elems.size() == 0 ? true : false;
-}
-
 struct Indice {
    	int IDeditorial;
 	long indice;
 };
 
 struct Header{
-	Stack<int> AvailList;
+	int AvailList;
 	int sizeRegistro;
 };
 
@@ -68,7 +27,6 @@ struct Header{
 void Capturar(Libro &libro);
 void EliminarRetornoLinea(char *cad);
 void Leer(FILE *fa, Libro &libro, int IDeditorial);
-void Update(FILE *fa, Libro &libro, int IDeditorial);
 void Insertar(FILE *fa, Libro &libro);
 void Mostrar(Libro &libro);
 void ListarPorEditorial(FILE *fa);
@@ -85,10 +43,6 @@ int main(int argc, char** argv){
 	//Libro* libro2 = new Libro();
 	Editorial editorial;
 	int IDeditorial;
-	Header header;
-	if(header.AvailList.empty()==1){
-		header.AvailList.push(-1);
-	}
 	//Editorial* editorial;
 	FILE *fa;
 	FILE *fed;
@@ -104,25 +58,21 @@ int main(int argc, char** argv){
 		cout<<"Ingrese su opcion: "<<endl
 		<<"1) Create Book"<<endl<<"2) Read Book"<<endl
 		<<"3) Update Book"<<endl<<"4) Delete Book"<<endl
-		<<"5) List Books"<<endl<<"6) Create Editorial"<<endl
-		<<"7) Read Editorial"<<endl<<"8) Update Editorial"<<endl
-		<<"9) Delete Editorial"<<endl<<"10) List Editorials"<<endl
-		<<"11) List Books By Editorial"<<endl<<"12) Reindexar Libros"<<endl
-		<<"13) Exit"<<endl;
+		<<"5) List Books"<<endl<<"6) Create Editorial"<<endl<<"7) Exit"<<endl;
 		cin>>menu;
 		cin.ignore(256,'\n' );
-		if(menu>13||menu<1){
+		if(menu>7||menu<1){
 			cout<<"Opcion no valida"<<endl;
 			cin.ignore(256,'\n' );
 		}
 		if(menu==1){
 			Capturar(libro);
 			Insertar(fa, libro);
-			header.sizeRegistro++;
+            	
+
 		}
 		if(menu==2){
 			do {
-				cout<<"Ingrese el ID del editorial del libro que desea buscar"<<endl;
 	       			cin>>IDeditorial;
             		} while(IDeditorial < 1);
             		Leer(fa, libro, IDeditorial);
@@ -141,24 +91,7 @@ int main(int argc, char** argv){
 		if(menu==6){
 
 		}
-		if(menu==8){
-
-		}
-		if(menu==9){
-
-		}
-		if(menu==10){
-
-		}
-		if(menu==11){
-			ListarPorEditorial(fa);
-		}
-		if(menu==12){
-			printf("Indices Reordenados");
-			cout<<endl;
-			ReconstruirIndices(fa);
-		}
-	}while(menu!=13);
+	}while(menu!=7);
 //	cin.ignore(256,'\n' );
 
 	return 0;
@@ -202,46 +135,12 @@ void Mostrar(Libro &libro){
 
 	if(libro.IDeditorial > 0) {
       		printf("Nombre: %s %s %s\n", libro.nombre, libro.autor, libro.ISBN);
-      		printf("Número de Editorial: %u\n", libro.IDeditorial);
+      		printf("Número de teléfono: %u\n", libro.IDeditorial);
    	}
    	system("PAUSE");
 }
 
-void Update(FILE *fa, Libro &libro, int IDeditorial){
-	FILE *fi;
-   	Indice ind;
-   	long inf, sup, n, nRegs;
-
-   	fi = fopen("libros.ind", "rb");
-   	fseek(fi, 0, SEEK_END);
-   	nRegs = ftell(fi)/sizeof(Indice);
-   	// Búsqueda binaria:
-   	inf = 0;
-   	sup = nRegs-1;
-	do {
-      		n = inf+(sup-inf)/2;
-      		fseek(fi, n*sizeof(Indice), SEEK_SET);
-      		fread(&ind, sizeof(Indice), 1, fi);
-   		if((ind.IDeditorial==IDeditorial)) {
-      			fseek(fa, ind.indice*sizeof(Libro), SEEK_SET);
-      			fread(&libro, sizeof(Libro), 1, fa);
-        		break;
-   		}
-  		 else if(ind.IDeditorial<IDeditorial) inf = n+1;
-      		 else sup = n-1;
-   	} while(inf <= sup /*&& (ind.IDeditorial!=IDeditorial)*/);
-   	if((ind.IDeditorial==IDeditorial)) {
-      		fseek(fa, ind.indice*sizeof(Libro), SEEK_SET);
-      		fread(&libro, sizeof(Libro), 1, fa);
-   	}
-	else {
-      		libro.IDeditorial = -2;
-      		printf("Registro no encontrado\n");
-   	}
-   	
-	fclose(fi);
-}
-
+// Lee el registro desde el fichero de datos con el teléfono dado
 void Leer(FILE *fa, Libro &libro, int IDeditorial){
 
 	FILE *fi;
@@ -254,23 +153,18 @@ void Leer(FILE *fa, Libro &libro, int IDeditorial){
    	// Búsqueda binaria:
    	inf = 0;
    	sup = nRegs-1;
-	do {
+   	do {
       		n = inf+(sup-inf)/2;
       		fseek(fi, n*sizeof(Indice), SEEK_SET);
       		fread(&ind, sizeof(Indice), 1, fi);
-   		if((ind.IDeditorial==IDeditorial)) {
-      			fseek(fa, ind.indice*sizeof(Libro), SEEK_SET);
-      			fread(&libro, sizeof(Libro), 1, fa);
-        		break;
-   		}
-  		 else if(ind.IDeditorial<IDeditorial) inf = n+1;
-      		 else sup = n-1;
-   	} while(inf <= sup /*&& (ind.IDeditorial!=IDeditorial)*/);
-   	if((ind.IDeditorial==IDeditorial)) {
+      		if((ind.IDeditorial<0)&&(IDeditorial < 0)) inf = n+1;
+      		else sup = n-1;
+   	} while(inf <= sup && (ind.IDeditorial==IDeditorial));
+   	if((ind.IDeditorial!=IDeditorial)) {
       		fseek(fa, ind.indice*sizeof(Libro), SEEK_SET);
       		fread(&libro, sizeof(Libro), 1, fa);
    	}
-	else {
+   	else {
       		libro.IDeditorial = -2;
       		printf("Registro no encontrado\n");
    	}
@@ -338,7 +232,8 @@ void ReconstruirIndices(FILE *fa){
 }
 
 void QuickSort(FILE *fi, long inicio, long final){
-	long iz, de;
+
+   	long iz, de;
    	//char mitad[10];
    	//static char cad[10];
    	int mitad;
@@ -349,17 +244,16 @@ void QuickSort(FILE *fi, long inicio, long final){
    	//strcpy(mitad, LeeCampo(fi, (iz+de)/2, cad));
    	mitad = LeeCampo(fi, (iz+de)/2, cad);
    	do {
-      		while((LeeCampo(fi, iz, cad)<mitad) /*&& iz < final*/) iz++;
-      		while((LeeCampo(fi, de, cad)>mitad)/* && (de > inicio)*/) de--;
+      		while((LeeCampo(fi, iz, cad)<0) && (mitad<0) && iz < final) iz++;
+      		while((mitad<0) && (LeeCampo(fi, de, cad)<0) && (de > inicio)) de--;
       		if(iz < de) Intercambia(fi, iz, de);
-      			if(iz <= de) {
-         			iz++;
-         			de--;
+      		if(iz <= de) {
+         		iz++;
+         		de--;
      		 }
    	} while(iz <= de);
    	if(inicio < de) QuickSort(fi, inicio, de);
    	if(iz < final) QuickSort(fi, iz, final);
-
 }
 
 int LeeCampo(FILE *fi, long n, int buf){

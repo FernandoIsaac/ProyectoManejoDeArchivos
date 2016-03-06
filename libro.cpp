@@ -15,7 +15,7 @@ using std::setprecision;
 using std::left;
 using std::right;
 
-Libro::Libro(char* ISBN, char* nombre, char* autor, unsigned int IDeditorial):/*ID(ID), nombre(nombre), autor(autor),*/IDeditorial(IDeditorial){
+Libro::Libro(char* ISBN, char* nombre, char* autor, int IDeditorial):/*ID(ID), nombre(nombre), autor(autor),*/IDeditorial(IDeditorial){
 	      strcpy(nombre, nombre);
 	      strcpy(ISBN, ISBN);
 	      strcpy(autor, autor);
@@ -59,7 +59,7 @@ string Libro::getAutor()const{
 	return ss.str();
 }
 
-unsigned int Libro::getIDeditorial()const{
+int Libro::getIDeditorial()const{
 	return IDeditorial;
 }
 
@@ -84,6 +84,6 @@ void Libro::setAutor(char* autor){
 	//this->autor=autor;
 }
 
-void Libro::setIDeditorial(unsigned IDeditorial){
+void Libro::setIDeditorial(int IDeditorial){
 	this->IDeditorial=IDeditorial;
 }

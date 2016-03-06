@@ -1,0 +1,10 @@
+kelvin: main.o stack.o libro.o editorial.o
+	g++ main.o stack.o libro.o editorial.o -o exe
+main.o: main.cpp stack.cpp libro.cpp editorial.cpp
+	g++ -c main.cpp
+stack.o: stack.cpp stack.h
+	gcc -c stack.cpp
+libro.o: libro.cpp libro.h
+	g++ -c libro.cpp
+editorial.o: editorial.cpp editorial.h
+	g++ -c editorial.cpp
