@@ -59,6 +59,11 @@ struct Indice {
 	long indice;
 };
 
+struct IndiceEditorial{
+	int IDeditorial;
+	long indice;
+};
+
 struct Header{
 	Stack<int> AvailList;
 	int sizeRegistro;
@@ -209,8 +214,6 @@ void EliminarRetornoLinea(char *cad){
 // Muestra un registro en pantalla, si no está marcado como borrado
 void Mostrar(Libro &libro){
 
-	int i;
-
 	if(libro.IDeditorial > 0) {
       		printf("Nombre: %s %s %s\n", libro.nombre, libro.autor, libro.ISBN);
       		printf("Número de Editorial: %d\n", libro.IDeditorial);
@@ -220,6 +223,7 @@ void Mostrar(Libro &libro){
 void Delete(FILE *fa, Libro &libro, int IDeditorial){
 	FILE *fi;
    	Indice ind;
+	Header header;
    	long inf, sup, n, nRegs;
    	fi = fopen("libros.ind", "rb");
    	fseek(fi, 0, SEEK_END);
@@ -235,6 +239,7 @@ void Delete(FILE *fa, Libro &libro, int IDeditorial){
 		if((ind.IDeditorial==IDeditorial)) {
                         //fgets(libro.IDeditorial, 5, stdin);
 			libro.IDeditorial = ind.indice*-1;
+			header.AvailList.push(ind.indice);
                         fseek(fa, ind.indice*sizeof(Libro), SEEK_SET);
                         fwrite(&libro, sizeof(Libro), 1, fa);
                         ReconstruirIndices(fa);
@@ -385,8 +390,9 @@ void ListarPorEditorial(FILE *fa){
    	while(fread(&ind, sizeof(Indice), 1, fi)) {
       		fseek(fa, ind.indice*sizeof(Libro), SEEK_SET);
       		fread(&libro, sizeof(Libro), 1, fa);
-      		printf("%s %s %s %u\n", libro.nombre, libro.autor,
-        	libro.ISBN, libro.IDeditorial);
+		if(libro.IDeditorial>=0)
+      			printf("%s %s %s %d\n", libro.nombre, libro.autor,
+        		libro.ISBN, libro.IDeditorial);
    	}
    	fclose(fi);
    	//system("PAUSE");
@@ -400,9 +406,11 @@ void ListarNatural(FILE *fa){
    
    	rewind(fa);
    	//system("cls");
-   	while(fread(&libro, sizeof(Libro), 1, fa)) 
-      	printf("%s %s %s %u\n", libro.nombre, libro.autor,
-        libro.ISBN, libro.IDeditorial);
+   	while(fread(&libro, sizeof(Libro), 1, fa)){
+		if(libro.IDeditorial>=0)
+      			printf("%s %s %s %d\n", libro.nombre, libro.autor,
+        		libro.ISBN, libro.IDeditorial);
+	}
    	//system("PAUSE");
 }
 
@@ -476,3 +484,300 @@ void Intercambia(FILE *fi, long iz, long de){
 	fseek(fi, de*sizeof(Indice), SEEK_SET);
 	fwrite(&libro1, sizeof(Indice), 1, fi);
 }
+
+// Permite que el usuario introduzca un registro por pantalla
+void CapturarEditorial(Editorial &editorial){
+	//   char numero[6];
+
+   	//system("cls");
+   	//printf("Leer registro:\n\n");
+   	//editorial.valido = 'S';
+   	printf("Nombre: ");
+   	fgets(editorial.nombre, 43, stdin);
+   	EliminarRetornoLinea(editorial.nombre);
+   	printf("Autor: ");
+   	fgets(editorial.autor, 41, stdin);
+   	EliminarRetornoLinea(editorial.autor);
+   	printf("ISBN: ");
+   	fgets(editorial.ISBN, 14, stdin);
+   	EliminarRetornoLinea(editorial.ISBN);
+   	printf("ID editorial: ");
+   	//fgets(editorial.IDeditorial, 5, stdin);
+   	cin>>editorial.IDeditorial;
+   	//EliminarRetornoLinea(editorial.IDeditorial);
+}
+
+// Muestra un registro en pantalla, si no está marcado como borrado
+void MostrarEditorial(Editorial &editorial){
+
+	if(editorial.IDeditorial > 0) {
+      		printf("Nombre: %s %s %s\n", editorial.nombre, editorial.autor, editorial.ISBN);
+      		printf("Número de Editorial: %d\n", editorial.IDeditorial);
+   	}
+   	system("PAUSE");
+}
+void DeleteEditorial(FILE *fa, Editorial &editorial, int IDeditorial){
+	FILE *fi;
+   	IndiceEditorial ind;
+	Header header;
+   	long inf, sup, n, nRegs;
+   	fi = fopen("editorials.ind", "rb");
+   	fseek(fi, 0, SEEK_END);
+   	nRegs = ftell(fi)/sizeof(IndiceEditorial);
+   	// Búsqueda binaria:
+   	inf = 0;
+   	sup = nRegs-1;
+			//getline (cin,NombreEditorial);
+	do {
+      		n = inf+(sup-inf)/2;
+      		fseek(fi, n*sizeof(IndiceEditorial), SEEK_SET);
+      		fread(&ind, sizeof(IndiceEditorial), 1, fi);
+		if((ind.IDeditorial==IDeditorial)) {
+                        //fgets(editorial.IDeditorial, 5, stdin);
+			editorial.IDeditorial = ind.indice*-1;
+			header.AvailList.push(ind.indice);
+                        fseek(fa, ind.indice*sizeof(Editorial), SEEK_SET);
+                        fwrite(&editorial, sizeof(Editorial), 1, fa);
+                        ReconstruirIndiceEditorials(fa);
+                }
+
+  		if(ind.IDeditorial<IDeditorial) inf = n+1;
+      		else sup = n-1;
+   	} while(inf <= sup /*&& (ind.IDeditorial!=IDeditorial)*/);
+   	if((ind.IDeditorial==IDeditorial)) {
+		//cin.ignore(256,'\n' );
+     		//fseek(fa, ind.indice*sizeof(Editorial), SEEK_SET);
+   		//fgets(editorial.IDeditorial, 5, stdin);
+		editorial.IDeditorial=ind.indice*-1;
+		fseek(fa, ind.indice*sizeof(Editorial), SEEK_SET);
+   		fwrite(&editorial, sizeof(Editorial), 1, fa);
+   		ReconstruirIndiceEditorials(fa);
+   	}
+	
+	else {
+      		editorial.IDeditorial = -2;
+      		printf("Registro no encontrado\n");
+   	}
+   	
+	fclose(fi);
+
+}
+
+void UpdateEditorial(FILE *fa, Editorial &editorial, int IDeditorial){
+	FILE *fi;
+   	IndiceEditorial ind;
+   	bool primero = false;
+	long inf, sup, n, nRegs;
+   	fi = fopen("editorials.ind", "rb");
+   	fseek(fi, 0, SEEK_END);
+   	nRegs = ftell(fi)/sizeof(IndiceEditorial);
+   	// Búsqueda binaria:
+   	inf = 0;
+   	sup = nRegs-1;
+			//getline (cin,NombreEditorial);
+	do {
+      		n = inf+(sup-inf)/2;
+      		fseek(fi, n*sizeof(IndiceEditorial), SEEK_SET);
+      		fread(&ind, sizeof(IndiceEditorial), 1, fi);
+		if((ind.IDeditorial==IDeditorial)) {
+                        //fseek(fa, ind.indice*sizeof(Editorial), SEEK_SET);
+                        cin.ignore(256,'\n' );
+                        printf("Nombre: ");
+                        fgets(editorial.nombre, 43, stdin);
+                        EliminarRetornoLinea(editorial.nombre);
+                        printf("Autor: ");
+                        fgets(editorial.autor, 41, stdin);
+                        EliminarRetornoLinea(editorial.autor);
+                        printf("ISBN: ");
+                        fgets(editorial.ISBN, 14, stdin);
+                        EliminarRetornoLinea(editorial.ISBN);
+                        printf("ID editorial: ");
+                        //fgets(editorial.IDeditorial, 5, stdin);
+                        cin>>editorial.IDeditorial;
+                        fseek(fa, ind.indice*sizeof(Editorial), SEEK_SET);
+                        fwrite(&editorial, sizeof(Editorial), 1, fa);
+                        ReconstruirIndiceEditorials(fa);
+			primero = true;
+                }
+
+  		if(ind.IDeditorial<IDeditorial) inf = n+1;
+      		else sup = n-1;
+   	} while(inf <= sup /*&& (ind.IDeditorial!=IDeditorial)*/);
+   	if(primero == false){
+	if((ind.IDeditorial==IDeditorial)) {
+     			//fseek(fa, ind.indice*sizeof(Editorial), SEEK_SET);
+			cin.ignore(256,'\n' );
+   			printf("Nombre: ");
+   			fgets(editorial.nombre, 43, stdin);
+   			EliminarRetornoLinea(editorial.nombre);
+   			printf("Autor: ");
+   			fgets(editorial.autor, 41, stdin);
+   			EliminarRetornoLinea(editorial.autor);
+   			printf("ISBN: ");
+   			fgets(editorial.ISBN, 14, stdin);
+   			EliminarRetornoLinea(editorial.ISBN);
+   			printf("ID editorial: ");
+	   		//fgets(editorial.IDeditorial, 5, stdin);
+			cin>>editorial.IDeditorial;
+			fseek(fa, ind.indice*sizeof(Editorial), SEEK_SET);
+	   		fwrite(&editorial, sizeof(Editorial), 1, fa);
+   			ReconstruirIndiceEditorials(fa);
+   		}
+	}
+	else {
+      		editorial.IDeditorial = -2;
+      		printf("Registro no encontrado\n");
+   	}
+   	
+	fclose(fi);
+}
+
+void LeerEditorial(FILE *fa, Editorial &editorial, int IDeditorial){
+
+	FILE *fi;
+   	IndiceEditorial ind;
+   	long inf, sup, n, nRegs;
+
+   	fi = fopen("editorials.ind", "rb");
+   	fseek(fi, 0, SEEK_END);
+   	nRegs = ftell(fi)/sizeof(IndiceEditorial);
+   	// Búsqueda binaria:
+   	inf = 0;
+   	sup = nRegs-1;
+	do {
+      		n = inf+(sup-inf)/2;
+      		fseek(fi, n*sizeof(IndiceEditorial), SEEK_SET);
+      		fread(&ind, sizeof(IndiceEditorial), 1, fi);
+   		if((ind.IDeditorial==IDeditorial)) {
+      			fseek(fa, ind.indice*sizeof(Editorial), SEEK_SET);
+      			fread(&editorial, sizeof(Editorial), 1, fa);
+        		break;
+   		}
+  		 else if(ind.IDeditorial<IDeditorial) inf = n+1;
+      		 else sup = n-1;
+   	} while(inf <= sup /*&& (ind.IDeditorial!=IDeditorial)*/);
+   	if((ind.IDeditorial==IDeditorial)) {
+      		fseek(fa, ind.indice*sizeof(Editorial), SEEK_SET);
+		cout<<"ESTE ES ind.indice: "<<ind.indice<<endl;
+      		fread(&editorial, sizeof(Editorial), 1, fa);
+   	}
+	else {
+      		editorial.IDeditorial = -2;
+      		printf("Registro no encontrado\n");
+   	}
+   	fclose(fi);
+}
+
+void InsertarEditorial(FILE *fa, Editorial &editorial){
+   	// Insertar al final:
+	fseek(fa, 0, SEEK_END);
+   	fwrite(&editorial, sizeof(Editorial), 1, fa);
+   	ReconstruirIndiceEditorials(fa);
+}
+
+void ListarEditorialPorEditorial(FILE *fa){
+
+	FILE *fi;
+	IndiceEditorial ind;
+	Editorial editorial;
+   
+   	//system("cls");
+   	fi = fopen("editorials.ind", "rb");
+   	while(fread(&ind, sizeof(IndiceEditorial), 1, fi)) {
+      		fseek(fa, ind.indice*sizeof(Editorial), SEEK_SET);
+      		fread(&editorial, sizeof(Editorial), 1, fa);
+		if(editorial.IDeditorial>=0)
+      			printf("%s %s %s %d\n", editorial.nombre, editorial.autor,
+        		editorial.ISBN, editorial.IDeditorial);
+   	}
+   	fclose(fi);
+   	//system("PAUSE");
+}
+
+// Lista todos los registros del archivo de datos por el orden en que se
+// insertaron.
+void ListarEditorialNatural(FILE *fa){
+
+	Editorial editorial;
+   
+   	rewind(fa);
+   	//system("cls");
+   	while(fread(&editorial, sizeof(Editorial), 1, fa)){
+		if(editorial.IDeditorial>=0)
+      			printf("%s %s %s %d\n", editorial.nombre, editorial.autor,
+        		editorial.ISBN, editorial.IDeditorial);
+	}
+   	//system("PAUSE");
+}
+
+// Reconstruye el archivo de índices
+void ReconstruirIndicesEditorial(FILE *fa){
+	long n=0;
+   	FILE *fi;
+   	Editorial editorial;
+   	IndiceEditorial ind;
+   
+   	// Crea el fichero de índices 
+   	fi = fopen("editorials.ind", "w+b");
+   	rewind(fa);
+   	while(fread(&editorial, sizeof(Editorial), 1, fa)) {
+      		//strcpy(ind.IDeditorial, editorial.IDeditorial);
+      		ind.IDeditorial=editorial.IDeditorial;
+      		ind.indice = n++;
+      		fwrite(&ind, sizeof(IndiceEditorial), 1, fi);
+   	}
+   	// Ordena usando el algoritmo Quicksort:
+   	QuickSortEditorial(fi, 0, n-1);
+   	fclose(fi);
+}
+
+void QuickSortEditorial(FILE *fi, long inicio, long final){
+	long iz, de;
+   	//char mitad[10];
+   	//static char cad[10];
+   	int mitad;
+   	static int cad;
+
+   	iz = inicio;
+   	de = final;
+   	//strcpy(mitad, LeeCampoEditorial(fi, (iz+de)/2, cad));
+   	mitad = LeeCampoEditorial(fi, (iz+de)/2, cad);
+   	do {
+      		while((LeeCampoEditorial(fi, iz, cad)<mitad) /*&& iz < final*/) iz++;
+      		while((LeeCampoEditorial(fi, de, cad)>mitad)/* && (de > inicio)*/) de--;
+      		if(iz < de) Intercambia(fi, iz, de);
+      			if(iz <= de) {
+         			iz++;
+         			de--;
+     		 }
+   	} while(iz <= de);
+   	if(inicio < de) QuickSortEditorial(fi, inicio, de);
+   	if(iz < final) QuickSortEditorial(fi, iz, final);
+
+}
+
+int LeeCampoEditorial(FILE *fi, long n, int buf){
+
+   	IndiceEditorial ind;
+
+   	fseek(fi, n*sizeof(IndiceEditorial), SEEK_SET);
+   	fread(&ind, sizeof(IndiceEditorial), 1, fi);
+   	//strcpy(buf, ind.IDeditorial);
+   	buf = ind.IDeditorial;
+   	return buf;
+}
+
+void Intercambia(FILE *fi, long iz, long de){
+   
+	IndiceEditorial editorial1, editorial2;
+
+   	fseek(fi, iz*sizeof(IndiceEditorial), SEEK_SET);
+   	fread(&editorial1, sizeof(IndiceEditorial), 1, fi);
+   	fseek(fi, de*sizeof(IndiceEditorial), SEEK_SET);
+   	fread(&editorial2, sizeof(IndiceEditorial), 1, fi);
+   	fseek(fi, iz*sizeof(IndiceEditorial), SEEK_SET);
+   	fwrite(&editorial2, sizeof(IndiceEditorial), 1, fi);
+	fseek(fi, de*sizeof(IndiceEditorial), SEEK_SET);
+	fwrite(&editorial1, sizeof(IndiceEditorial), 1, fi);
+}
+

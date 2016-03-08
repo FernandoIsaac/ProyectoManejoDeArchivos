@@ -5,19 +5,19 @@
 using std::string;
 
 class Editorial{
-	unsigned int ID;
-	string nombre;
-	string direccion;
 public:
-	Editorial(unsigned int, string, string);
+	int IDeditorial;
+	char nombre[41];
+	char direccion[41];
+	Editorial(int, char*, char*);
 	Editorial(const Editorial&);
 	Editorial();
 	string toString()const;
 	string toString2()const;
-	unsigned int getID()const;
+	int getIDeditorial()const;
 	string getNombre()const;
 	string getDireccion()const;
-	void setID(unsigned int);
+	void setIDeditorial(int);
 	void setNombre(string);
 	void setDireccion(string);
 };
